@@ -32,11 +32,11 @@ class CFG(private val groupsAst: Map<Int, Node>, private val root: Node) {
     private fun createCFG(
         node: Node,
         rules: MutableMap<String, MutableList<List<String>>>,
-        startSymbol: String? = null
+        nameNT: String? = null
     ): String {
         return when (node) {
             is CharNode -> {
-                val nonTerminal = startSymbol ?: createIndex("CHAR")
+                val nonTerminal = nameNT ?: createIndex("CHAR")
                 rules.computeIfAbsent(nonTerminal) { mutableListOf() }.add(listOf(node.char.toString()))
                 nonTerminal
             }
@@ -50,27 +50,27 @@ class CFG(private val groupsAst: Map<Int, Node>, private val root: Node) {
 
             is NonCaptureGroupNode -> {
 
-                val nonTerminal = startSymbol ?: createIndex("NonCapt")
+                val nonTerminal = nameNT ?: createIndex("NonCapt")
                 val subNt = createCFG(node.node, rules)
                 rules.computeIfAbsent(nonTerminal) { mutableListOf() }.add(listOf(subNt))
                 nonTerminal
             }
 
             is LookaheadNode -> {
-                val nonTerminal = startSymbol ?: createIndex("LookAh")
+                val nonTerminal = nameNT ?: createIndex("LookAh")
                 rules.computeIfAbsent(nonTerminal) { mutableListOf() }.add(emptyList()) // ε
                 nonTerminal
             }
 
             is ConcatNode -> {
-                val nonTerminal = startSymbol ?: createIndex("Concat")
+                val nonTerminal = nameNT ?: createIndex("Concat")
                 val operandsNT = node.operands.map { createCFG(it, rules) }
                 rules.computeIfAbsent(nonTerminal) { mutableListOf() }.add(operandsNT)
                 nonTerminal
             }
 
             is OrNode -> {
-                val nonTerminal = startSymbol ?: createIndex("Or")
+                val nonTerminal = nameNT ?: createIndex("Or")
                 for (operand in node.operands) {
                     val operandNt = createCFG(operand, rules)
                     rules.computeIfAbsent(nonTerminal) { mutableListOf() }.add(listOf(operandNt))
@@ -79,7 +79,7 @@ class CFG(private val groupsAst: Map<Int, Node>, private val root: Node) {
             }
 
             is StarNode -> {
-                val nonTerminal = startSymbol ?: createIndex("KleeneSt")
+                val nonTerminal = nameNT ?: createIndex("KleeneSt")
                 val subNt = createCFG(node.node, rules)
                 rules.computeIfAbsent(nonTerminal) { mutableListOf() }.add(emptyList()) // ε
                 rules[nonTerminal]!!.add(listOf(nonTerminal, subNt))
@@ -134,8 +134,8 @@ fun main() {
     val resCfg = resCFG.compute()
     println("КС-грамматика:")
     printCFG(resCfg)
-/*    println("*".repeat(100))
-    println(tokenizer.tokens)
-    println("*".repeat(100))
-    println(ast)*/
+    //println("*".repeat(100))
+    //println(tokenizer.tokens)
+    //println("*".repeat(100))
+    //println(ast)
 }
